@@ -15,9 +15,6 @@ function IsEsmPkgAnswer({
   isEsm: boolean;
   pkgExports: string | undefined;
 }) {
-  const npmUrl = useMemo(() => {
-    return `https://www.npmjs.com/package/${packageName}`;
-  }, [packageName]);
   return (
     <div>
       <div class="mb-10">
