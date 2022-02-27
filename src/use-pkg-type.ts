@@ -30,17 +30,23 @@ export function isNotFoundError(error: unknown): error is NotFoundError {
 }
 export function usePkgType(packageName: string) {
   const unpkgUrl = useMemo(() => getUnpkgUrl(packageName), [packageName]);
-  const pkgTypeResult = useQuery(packageName, async () => {
-    const res = await fetch(unpkgUrl);
-    if (!res.ok) {
-      if (res.status === 404) {
-        throw new NotFoundError();
+  const pkgTypeResult = useQuery(
+    packageName,
+    async () => {
+      const res = await fetch(unpkgUrl);
+      if (!res.ok) {
+        if (res.status === 404) {
+          throw new NotFoundError();
+        }
+        throw res;
       }
-      throw res;
+      const responsJson = await res.json();
+      const pkgType = getTypeFromPkgJson(responsJson);
+      return pkgType;
+    },
+    {
+      retry: false,
     }
-    const responsJson = await res.json();
-    const pkgType = getTypeFromPkgJson(responsJson);
-    return pkgType;
-  });
+  );
   return pkgTypeResult;
 }
