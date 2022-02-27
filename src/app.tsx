@@ -15,6 +15,9 @@ function IsEsmPkgAnswer({
   isEsm: boolean;
   pkgExports: string | undefined;
 }) {
+  const npmUrl = useMemo(() => {
+    return `https://www.npmjs.com/package/${packageName}`;
+  }, [packageName]);
   return (
     <div>
       <div class="mb-10">
@@ -41,9 +44,9 @@ function IsEsmPkgAnswer({
 
 function IsEsmPkgForm() {
   const [packageName, setPackageName] = useState("");
-  const throttledPackageName = useThrottle(packageName, 2000);
+  const [currentPackageName, setCurrentPackageName] = useState("");
 
-  const pkgJson = usePkgJson(throttledPackageName);
+  const pkgJson = usePkgJson(currentPackageName);
 
   const pkgType = usePkgType(pkgJson);
   const pkgExports = usePkgExports(pkgJson);
@@ -51,7 +54,7 @@ function IsEsmPkgForm() {
   const isEsm = useMemo(() => pkgType === "module", [pkgType]);
 
   const shouldShownAnswer = useMemo(() => {
-    if (throttledPackageName === "" || pkgJson.isLoading || pkgJson.isError) {
+    if (currentPackageName === "" || pkgJson.isLoading || pkgJson.isError) {
       return false;
     }
     return true;
@@ -64,7 +67,7 @@ function IsEsmPkgForm() {
   }, [pkgType]);
   return (
     <>
-      <form class="my-10">
+      <div class="my-10 flex">
         <p class="text-3xl">
           Is
           <span class="px-3">
@@ -83,13 +86,24 @@ function IsEsmPkgForm() {
           </span>
           an ESM package?
         </p>
-      </form>
+        <div class="ml-3">
+          <button
+            class="cursor-pointer rounded bg-blue-500 py-2 px-5 text-white hover:bg-blue-600"
+            onClick={() => {
+              setCurrentPackageName(packageName);
+            }}
+          >
+            submit
+          </button>
+        </div>
+      </div>
       <div class="text-3xl">
+        {pkgJson.isLoading ? <p>...fetching</p> : null}
         {shouldShownAnswer ? (
           <IsEsmPkgAnswer isEsm={isEsm} pkgExports={pkgExports} />
         ) : null}
         {shouldShownNotFound ? (
-          <p class="text-red-500">{throttledPackageName} not found.</p>
+          <p class="text-red-500">{currentPackageName} not found.</p>
         ) : null}
       </div>
     </>

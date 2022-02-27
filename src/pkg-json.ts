@@ -72,6 +72,9 @@ export function usePkgJson(packageName: string) {
   const pkgJsonResult = useQuery(
     packageName,
     async () => {
+      if (packageName === "") {
+        throw new Error("No package name");
+      }
       const res = await fetch(unpkgUrl);
       if (!res.ok) {
         if (res.status === 404) {
