@@ -12,7 +12,9 @@
     "lint:prettier": "prettier --check ."
   },
   "dependencies": {
-    "preact": "^10.5.15"
+    "preact": "^10.5.15",
+    "react-query": "^3.34.16",
+    "react-use": "^17.3.2"
   },
   "devDependencies": {
     "@preact/preset-vite": "^2.1.5",
