@@ -6,10 +6,10 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "fix": "prettier -w .",
+    "fix": "prettier -w src",
     "lint": "run-p lint:*",
     "lint:tsc": "tsc --noEmit",
-    "lint:prettier": "prettier --check ."
+    "lint:prettier": "prettier --check src"
   },
   "dependencies": {
     "preact": "^10.5.15",
