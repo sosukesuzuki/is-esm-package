@@ -6,7 +6,7 @@ import {
   usePkgExports,
   usePkgJson,
   usePkgType,
-} from "./use-pkg-type";
+} from "./pkg-json";
 
 function IsEsmPkgAnswer({
   isEsm,
@@ -41,9 +41,10 @@ function IsEsmPkgAnswer({
 
 function IsEsmPkgForm() {
   const [packageName, setPackageName] = useState("");
-  const throttledPackageName = useThrottle(packageName, 1000);
+  const throttledPackageName = useThrottle(packageName, 2000);
 
   const pkgJson = usePkgJson(throttledPackageName);
+
   const pkgType = usePkgType(pkgJson);
   const pkgExports = usePkgExports(pkgJson);
 
