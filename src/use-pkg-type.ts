@@ -1,5 +1,5 @@
 import { useMemo } from "preact/hooks";
-import { useQuery } from "react-query";
+import { useQuery, UseQueryResult } from "react-query";
 
 function getUnpkgUrl(packageName: string): string {
   return `https://www.unpkg.com/${packageName}/package.json`;
@@ -18,6 +18,45 @@ function getTypeFromPkgJson(pkgJson: unknown): PkgType {
     return pkgJson.type;
   }
 }
+export function usePkgType(pkgJsonResult: UseQueryResult): PkgType {
+  const pkgType = useMemo(() => {
+    return getTypeFromPkgJson(pkgJsonResult.data);
+  }, [pkgJsonResult]);
+  return pkgType;
+}
+
+function hasExports(pkgJson: unknown): pkgJson is { exports: object } {
+  if (!Object.prototype.hasOwnProperty.call(pkgJson, "exports")) {
+    return false;
+  }
+  return (
+    // @ts-ignore
+    (typeof pkgJson.exports === "object" &&
+      // @ts-ignore
+      pkgJson.exports !== null) ||
+    // @ts-ignore
+    typeof pkgJson.exports === "string"
+  );
+}
+function getPkgExports(pkgJson: unknown): string | undefined {
+  if (typeof pkgJson === "object" && pkgJson !== null && hasExports(pkgJson)) {
+    return JSON.stringify({ exports: pkgJson.exports }, null, 2);
+  }
+}
+export function usePkgExports(
+  pkgJsonResult: UseQueryResult
+): string | undefined {
+  const pkgExports = useMemo(() => {
+    if (
+      // @ts-ignore
+      pkgJsonResult.data?.exports
+    ) {
+      // @ts-ignore
+      return JSON.stringify({ exports: pkgJsonResult.data.exports }, null, 2);
+    }
+  }, [pkgJsonResult]);
+  return pkgExports;
+}
 
 class NotFoundError extends Error {
   name = "NotFoundError";
@@ -28,9 +67,9 @@ class NotFoundError extends Error {
 export function isNotFoundError(error: unknown): error is NotFoundError {
   return error instanceof NotFoundError;
 }
-export function usePkgType(packageName: string) {
+export function usePkgJson(packageName: string) {
   const unpkgUrl = useMemo(() => getUnpkgUrl(packageName), [packageName]);
-  const pkgTypeResult = useQuery(
+  const pkgJsonResult = useQuery(
     packageName,
     async () => {
       const res = await fetch(unpkgUrl);
@@ -41,12 +80,11 @@ export function usePkgType(packageName: string) {
         throw res;
       }
       const responsJson = await res.json();
-      const pkgType = getTypeFromPkgJson(responsJson);
-      return pkgType;
+      return responsJson;
     },
     {
       retry: false,
     }
   );
-  return pkgTypeResult;
+  return pkgJsonResult;
 }

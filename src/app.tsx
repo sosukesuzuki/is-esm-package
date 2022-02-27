@@ -1,21 +1,62 @@
 import { QueryClient, QueryClientProvider } from "react-query";
 import { useMemo, useState } from "preact/hooks";
 import { useThrottle } from "react-use";
-import { isNotFoundError, usePkgType } from "./use-pkg-type";
+import {
+  isNotFoundError,
+  usePkgExports,
+  usePkgJson,
+  usePkgType,
+} from "./use-pkg-type";
+
+function IsEsmPkgAnswer({
+  isEsm,
+  pkgExports,
+}: {
+  isEsm: boolean;
+  pkgExports: string | undefined;
+}) {
+  return (
+    <div>
+      <div class="mb-10">
+        {isEsm ? (
+          <p class="text-red-500">YES</p>
+        ) : (
+          <p class="text-blue-500">NO</p>
+        )}
+      </div>
+      {typeof pkgExports === "string" ? (
+        <div class="text-base">
+          <p class="mb-5">
+            <span class="bg-slate-100 font-mono">exports</span> in{" "}
+            <span class="bg-slate-100 font-mono">package.json</span>:
+          </p>
+          <pre class="bg-slate-100 p-5 font-mono">
+            <code>{pkgExports}</code>
+          </pre>
+        </div>
+      ) : null}
+    </div>
+  );
+}
 
 function IsEsmPkgForm() {
   const [packageName, setPackageName] = useState("");
-  const throttledPackageName = useThrottle(packageName);
-  const pkgType = usePkgType(throttledPackageName);
-  const isEsm = useMemo(() => pkgType.data === "module", [pkgType]);
+  const throttledPackageName = useThrottle(packageName, 1000);
+
+  const pkgJson = usePkgJson(throttledPackageName);
+  const pkgType = usePkgType(pkgJson);
+  const pkgExports = usePkgExports(pkgJson);
+
+  const isEsm = useMemo(() => pkgType === "module", [pkgType]);
+
   const shouldShownAnswer = useMemo(() => {
-    if (throttledPackageName === "" || pkgType.isLoading || pkgType.isError) {
+    if (throttledPackageName === "" || pkgJson.isLoading || pkgJson.isError) {
       return false;
     }
     return true;
-  }, [throttledPackageName, pkgType]);
+  }, [pkgJson]);
   const shouldShownNotFound = useMemo(() => {
-    if (pkgType.isError && isNotFoundError(pkgType.error)) {
+    if (pkgJson.isError && isNotFoundError(pkgJson.error)) {
       return true;
     }
     return false;
@@ -44,11 +85,7 @@ function IsEsmPkgForm() {
       </form>
       <div class="text-3xl">
         {shouldShownAnswer ? (
-          isEsm ? (
-            <p class="text-red-500">YES</p>
-          ) : (
-            <p class="text-blue-500">NO</p>
-          )
+          <IsEsmPkgAnswer isEsm={isEsm} pkgExports={pkgExports} />
         ) : null}
         {shouldShownNotFound ? (
           <p class="text-red-500">{throttledPackageName} not found.</p>
