@@ -61,7 +61,7 @@ function IsEsmPkgForm() {
       return true;
     }
     return false;
-  }, [pkgType]);
+  }, [pkgJson]);
   return (
     <>
       <div class="my-10 flex">
